@@ -33,6 +33,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"k8s.io/apimachinery/pkg/api/equality"
 
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -50,6 +54,20 @@ type PodFlameReconciler struct {
 	OperatorNamesapce string
 	Recorder          record.EventRecorder
 }
+
+var (
+	IgnoreStatusChange = builder.WithPredicates(predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			// Update only if spec / annotations / labels change, ie. ignore status changes
+			return (e.ObjectOld.GetGeneration() != e.ObjectNew.GetGeneration()) ||
+				!equality.Semantic.DeepEqual(e.ObjectNew.GetAnnotations(), e.ObjectOld.GetAnnotations()) ||
+				!equality.Semantic.DeepEqual(e.ObjectNew.GetLabels(), e.ObjectOld.GetLabels())
+		},
+		CreateFunc:  func(e event.CreateEvent) bool { return true },
+		DeleteFunc:  func(e event.DeleteEvent) bool { return true },
+		GenericFunc: func(e event.GenericEvent) bool { return false },
+	})
+)
 
 //+kubebuilder:rbac:groups=profilepod.io,resources=podflames,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=profilepod.io,resources=podflames/status,verbs=get;update;patch
@@ -182,7 +200,7 @@ func (r *PodFlameReconciler) doFinalizerOperationsForPodflame(ctx context.Contex
 // SetupWithManager sets up the controller with the Manager.
 func (r *PodFlameReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&profilepodiov1alpha1.PodFlame{}).
+		For(&profilepodiov1alpha1.PodFlame{}, IgnoreStatusChange).
 		Watches(&source.Kind{
 			Type: &corev1.Pod{ObjectMeta: metav1.ObjectMeta{
 				Namespace: r.OperatorNamesapce,
