@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"regexp"
 
 	profilepodiov1alpha1 "github.com/profile-pod/profile-pod-operator/api/v1alpha1"
@@ -17,8 +18,9 @@ import (
 )
 
 const (
-	baseImageName = "verizondigital/kubectl-flame"
 	ContainerName = "pod-profiler"
+	AgentImageKey = "AGENT_IMAGE"
+	AgentImageDefault = "pp:v1"
 )
 
 func (reconciler *PodFlameReconciler) definePod(podflame *profilepodiov1alpha1.PodFlame, namespace, podName string, ctx context.Context) (*corev1.Pod, error) {
@@ -41,7 +43,7 @@ func (reconciler *PodFlameReconciler) definePod(podflame *profilepodiov1alpha1.P
 	}
 	args := []string{
 		string(targetPod.UID), targetContainerName, targetContainerId, runtime,
-		podflame.Spec.Duration, podflame.Spec.Lang, podflame.Spec.Event,
+		podflame.Spec.Duration, podflame.Spec.Event,
 	}
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -72,7 +74,7 @@ func (reconciler *PodFlameReconciler) definePod(podflame *profilepodiov1alpha1.P
 				{
 					ImagePullPolicy: corev1.PullIfNotPresent,
 					Name:            ContainerName,
-					Image:           "newflame:2.9.2-alpine",
+					Image:           GetAgentImage(),
 					Command:         []string{"/app/agent"},
 					Args:            args,
 					VolumeMounts: []corev1.VolumeMount{
@@ -94,6 +96,14 @@ func (reconciler *PodFlameReconciler) definePod(podflame *profilepodiov1alpha1.P
 	// 	return nil, err
 	// }
 	return pod, nil
+}
+
+func GetAgentImage() string {
+	image, found := os.LookupEnv(AgentImageKey)
+	if !found {
+		image = AgentImageDefault
+	}
+	return image;
 }
 
 func (reconciler *PodFlameReconciler) reconcilePod(ctx context.Context, podflame *profilepodiov1alpha1.PodFlame) (ctrl.Result, error) {
