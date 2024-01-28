@@ -21,6 +21,10 @@ const (
 	ContainerName = "pod-profiler"
 	AgentImageKey = "AGENT_IMAGE"
 	AgentImageDefault = "pp:v1"
+	DockerRuntime = "docker"
+	containerdRuntime = "containerd"
+	DockerRuntimePath = "/var/lib/docker"
+	containerdRuntimePath = "/run/containerd"
 )
 
 func (reconciler *PodFlameReconciler) definePod(podflame *profilepodiov1alpha1.PodFlame, namespace, podName string, ctx context.Context) (*corev1.Pod, error) {
@@ -152,7 +156,12 @@ func (reconciler *PodFlameReconciler) reconcilePod(ctx context.Context, podflame
 					log.Error(err, "Failed to update podflame status")
 					return ctrl.Result{}, err
 				}
+				log.Info(fmt.Sprintf("Profiler pod %s failed: %s",podName,logs))
+				reconciler.Recorder.Event(podflame, "Warning", "Failed",
+				fmt.Sprintf("Profiler failed: %s",
+					logs))
 			case corev1.PodSucceeded:
+				log.Info(fmt.Sprintf("Profiler pod %s finished successfully",podName))
 				logs, err := getPodLogs(reconciler.Clientset, namespace, pod.Name)
 				if err != nil {
 					log.Info("Failed to get logs from succeeded profile pod. Re-running reconcile.")
@@ -163,10 +172,16 @@ func (reconciler *PodFlameReconciler) reconcilePod(ctx context.Context, podflame
 					log.Error(err, "Failed to update podflame status")
 					return ctrl.Result{}, err
 				}
+				reconciler.Recorder.Event(podflame, "Normal", "Success",
+				fmt.Sprintf("Profiler finished successfully"))
 			case corev1.PodRunning:
-				log.Info("Profiler pod is running")
+				log.Info(fmt.Sprintf("Profiler pod %s is running",podName))
+				reconciler.Recorder.Event(podflame, "Normal", "Running",
+				fmt.Sprintf("Profiler is running"))
 			default:
-				log.Info("Profiler pod is init")
+				log.Info(fmt.Sprintf("Profiler %s initializing",podName))
+				reconciler.Recorder.Event(podflame, "Normal", "Running",
+				fmt.Sprintf("Profiler %s initializing",podName))
 			}
 		}
 	}
@@ -233,10 +248,10 @@ func GetContainerDetailes(containerName string, pod *corev1.Pod) (string, string
 
 func GetContainerRuntimePath(runtime string) (string, error) {
 	switch runtime {
-	case "docker":
-		return "/var/lib/docker", nil
-	case "containerd":
-		return "/run/containerd", nil
+	case DockerRuntime:
+		return DockerRuntimePath, nil
+	case containerdRuntime:
+		return containerdRuntimePath, nil
 	default:
 		return "", errors.New("Unknown container runtime " + runtime)
 	}
