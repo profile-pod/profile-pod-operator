@@ -32,11 +32,6 @@ type PodFlameSpec struct {
 	// +operator-sdk:csv:customresourcedefinitions:type=spec
 	TargetPod string `json:"targetPod,omitempty"`
 
-	// +kubebuilder:validation:Enum:="java";"nodejs";"python"
-	// +kubebuilder:validation:Required
-	// +operator-sdk:csv:customresourcedefinitions:type=spec
-	Lang string `json:"lang,omitempty"`
-
 	// +kubebuilder:validation:Enum:="cpu"
 	// +kubebuilder:validation:Required
 	// +kubebuilder:default:=cpu

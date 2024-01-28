@@ -49,12 +49,6 @@ spec:
                 enum:
                 - cpu
                 type: string
-              lang:
-                enum:
-                - java
-                - nodejs
-                - python
-                type: string
               targetPod:
                 type: string
             type: object
