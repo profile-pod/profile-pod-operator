@@ -8,6 +8,7 @@ import (
 	"regexp"
 
 	profilepodiov1alpha1 "github.com/profile-pod/profile-pod-operator/api/v1alpha1"
+	"github.com/profile-pod/profile-pod-operator/controllers/constants"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -56,8 +57,8 @@ func (reconciler *PodFlameReconciler) definePod(podflame *profilepodiov1alpha1.P
 			Labels:    labelsForPodfalme(podflame),
 			Annotations: map[string]string{
 				"sidecar.istio.io/inject": "false",
-				"profilepod.io/name":      podflame.Name,
-				"profilepod.io/namespace": podflame.Namespace,
+				constants.AnnotationName:      podflame.Name,
+				constants.AnnotationNamespace: podflame.Namespace,
 			},
 		},
 		Spec: corev1.PodSpec{

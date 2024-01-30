@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 
+	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -27,21 +28,21 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
-	"sigs.k8s.io/controller-runtime/pkg/event"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
-	"k8s.io/apimachinery/pkg/api/equality"
 
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 
 	profilepodiov1alpha1 "github.com/profile-pod/profile-pod-operator/api/v1alpha1"
+	"github.com/profile-pod/profile-pod-operator/controllers/constants"
 )
 
 const podflameFinalizer = "profilepod.io/finalizer"
@@ -123,12 +124,12 @@ func (r *PodFlameReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if controllerutil.ContainsFinalizer(podflame, podflameFinalizer) {
 			log.Info("Performing Finalizer Operations for podflame before delete CR")
 
-			// Let's add here an status "Downgrade" to define that this resource begin its process to be terminated.
-			// meta.SetStatusCondition(&memcached.Status.Conditions, metav1.Condition{Type: typeDegradedMemcached,
+			// //Let's add here an status "Downgrade" to define that this resource begin its process to be terminated.
+			// meta.SetStatusCondition(&podflame.Status.Conditions, metav1.Condition{Type: typeDegradedMemcached,
 			// 	Status: metav1.ConditionUnknown, Reason: "Finalizing",
-			// 	Message: fmt.Sprintf("Performing finalizer operations for the custom resource: %s ", memcached.Name)})
+			// 	Message: fmt.Sprintf("Performing finalizer operations for the custom resource: %s ", podflame.Name)})
 
-			// if err := r.Status().Update(ctx, memcached); err != nil {
+			// if err := r.Status().Update(ctx, podflame); err != nil {
 			// 	log.Error(err, "Failed to update Memcached status")
 			// 	return ctrl.Result{}, err
 			// }
@@ -205,14 +206,14 @@ func (r *PodFlameReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			Type: &corev1.Pod{ObjectMeta: metav1.ObjectMeta{
 				Namespace: r.OperatorNamesapce,
 				Labels: map[string]string{
-					"app.kubernetes.io/managed-by": "profile-pod-operator",
+					constants.ManagedBy: constants.OperatorName,
 				}}},
 		},
 			handler.EnqueueRequestsFromMapFunc(func(a client.Object) []reconcile.Request {
 				var result = []reconcile.Request{}
 				annotations := a.GetAnnotations()
-				podFlameName, nameOk := annotations["profilepod.io/name"]
-				podFlameNameSpace, namespaceOk := annotations["profilepod.io/namespace"]
+				podFlameName, nameOk := annotations[constants.AnnotationName]
+				podFlameNameSpace, namespaceOk := annotations[constants.AnnotationNamespace]
 				if nameOk && namespaceOk {
 					result = []reconcile.Request{
 						{NamespacedName: types.NamespacedName{
