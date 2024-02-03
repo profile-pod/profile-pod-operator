@@ -1,8 +1,35 @@
 # profile-pod-operator
-// TODO(user): Add simple overview of use/purpose
+A Kubernetes operator for profiling applications running inside pods with low-overhead.
 
 ## Description
-// TODO(user): An in-depth paragraph about your project and overview of use
+The profile-pod-operator visualizing CPU time spent in the application functions using [FlameGraph](https://www.brendangregg.com/flamegraphs.html). The operator's goal is to help you pin down where your application spend too much time with low-overhead and without any modification. By not require any modification or restart for existing applications and by using low-overhead profilers, this is great for recording flame graph data from an already running application in production environment that you don't want to interrupt. 
+
+## Profile an application
+To profile an application, a PodFlame custom resource needs to be created in the same namespace as the target appliction. Run the following command to create it:
+
+```sh
+cat << EOF | kubectl apply -f -
+apiVersion: profilepod.io/v1alpha1
+kind: PodFlame
+metadata:
+  name: my-app-flame
+  namespace: my-app-namespace
+spec:
+  targetPod: my-app-54674f9647-jvm98 # The name of pod you want to profile.
+EOF
+```
+The following optional fields can be added to the PodFlame resource spec:
+
+```yaml
+    duration: 30s # The profiling duration in seconds (s/S) or minutins (m/M). default: 2m.
+    containerName: myapp # Require when the pod contains more then one container. 
+```
+After PodFlame resource is created, an [agent pod](https://github.com/profile-pod/profile-pod-agent) will be created by the operator in the same node as the target pod who was specified in the PodFlame spec.
+The agent pod is a high privileged pod, which detect the target application programming language and the target application process id, and runs a profiler suitable for the requested application. Once the Profile is done and flamegraph is generated for the application, it is placed in the `.status.flameGraph` of the corresponding PodFlame resource. Run the following command to get it: 
+
+```sh
+kubectl get pf my-app-flame -n my-app-namespace -o jsonpath='{.status.flameGraph}' | base64 -d | gunzip > myapp-flamegraph.html
+```
 
 ## Getting Started
 You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.

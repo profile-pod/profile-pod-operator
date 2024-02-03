@@ -7,7 +7,7 @@ import (
 
 func labelsForPodfalme(cr *profilepodiov1alpha1.PodFlame) map[string]string {
 	return map[string]string{
-		constants.Instance:   string(cr.UID),
+		constants.Instance:  string(cr.UID),
 		constants.ManagedBy: constants.OperatorName,
 	}
 }

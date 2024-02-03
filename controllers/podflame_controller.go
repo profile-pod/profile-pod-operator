@@ -79,11 +79,6 @@ var (
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the PodFlame object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.14.1/pkg/reconcile
 func (r *PodFlameReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -124,16 +119,6 @@ func (r *PodFlameReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if controllerutil.ContainsFinalizer(podflame, podflameFinalizer) {
 			log.Info("Performing Finalizer Operations for podflame before delete CR")
 
-			// //Let's add here an status "Downgrade" to define that this resource begin its process to be terminated.
-			// meta.SetStatusCondition(&podflame.Status.Conditions, metav1.Condition{Type: typeDegradedMemcached,
-			// 	Status: metav1.ConditionUnknown, Reason: "Finalizing",
-			// 	Message: fmt.Sprintf("Performing finalizer operations for the custom resource: %s ", podflame.Name)})
-
-			// if err := r.Status().Update(ctx, podflame); err != nil {
-			// 	log.Error(err, "Failed to update Memcached status")
-			// 	return ctrl.Result{}, err
-			// }
-
 			// Perform all operations required before remove the finalizer and allow
 			// the Kubernetes API to remove the custom resource.
 			err := r.doFinalizerOperationsForPodflame(ctx, podflame)
@@ -141,23 +126,6 @@ func (r *PodFlameReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				log.Error(err, "Failed to perform all operations required before remove the finalizer")
 				return ctrl.Result{}, err
 			}
-			// Re-fetch the memcached Custom Resource before update the status
-			// so that we have the latest state of the resource on the cluster and we will avoid
-			// raise the issue "the object has been modified, please apply
-			// your changes to the latest version and try again" which would re-trigger the reconciliation
-			// if err := r.Get(ctx, req.NamespacedName, memcached); err != nil {
-			// 	log.Error(err, "Failed to re-fetch memcached")
-			// 	return ctrl.Result{}, err
-			// }
-
-			// meta.SetStatusCondition(&memcached.Status.Conditions, metav1.Condition{Type: typeDegradedMemcached,
-			// 	Status: metav1.ConditionTrue, Reason: "Finalizing",
-			// 	Message: fmt.Sprintf("Finalizer operations for custom resource %s name were successfully accomplished", memcached.Name)})
-
-			// if err := r.Status().Update(ctx, memcached); err != nil {
-			// 	log.Error(err, "Failed to update Memcached status")
-			// 	return ctrl.Result{}, err
-			// }
 
 			log.Info("Removing Finalizer for podflame after successfully perform the operations")
 			if ok := controllerutil.RemoveFinalizer(podflame, podflameFinalizer); !ok {
@@ -192,7 +160,7 @@ func (r *PodFlameReconciler) doFinalizerOperationsForPodflame(ctx context.Contex
 	}
 	// The following implementation will raise an event
 	r.Recorder.Event(podflame, "Warning", "Deleting",
-		fmt.Sprintf("Custom Resource %s is being deleted from the namespace %s",
+		fmt.Sprintf("PodFlame %s is being deleted from the namespace %s",
 			podflame.Name,
 			podflame.Namespace))
 	return nil

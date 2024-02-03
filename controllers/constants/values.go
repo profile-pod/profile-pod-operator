@@ -1,5 +1,5 @@
 package constants
 
 const (
-	OperatorName  = "profile-pod-operator"
+	OperatorName = "profile-pod-operator"
 )

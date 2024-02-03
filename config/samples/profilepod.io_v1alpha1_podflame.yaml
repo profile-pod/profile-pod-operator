@@ -9,6 +9,5 @@ metadata:
     app.kubernetes.io/created-by: profile-pod-operator
   name: podflame-sample
 spec:
-  containerName: test
   duration: 30s
   targetPod: test-deployment-54674f9647-jvm98

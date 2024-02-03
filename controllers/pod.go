@@ -19,12 +19,12 @@ import (
 )
 
 const (
-	ContainerName = "pod-profiler"
-	AgentImageKey = "AGENT_IMAGE"
-	AgentImageDefault = "pp:v1"
-	DockerRuntime = "docker"
-	containerdRuntime = "containerd"
-	DockerRuntimePath = "/var/lib/docker"
+	ContainerName         = "pod-profiler"
+	AgentImageKey         = "AGENT_IMAGE"
+	AgentImageDefault     = "pp:v1"
+	DockerRuntime         = "docker"
+	containerdRuntime     = "containerd"
+	DockerRuntimePath     = "/var/lib/docker"
 	containerdRuntimePath = "/run/containerd"
 )
 
@@ -56,7 +56,7 @@ func (reconciler *PodFlameReconciler) definePod(podflame *profilepodiov1alpha1.P
 			Namespace: namespace,
 			Labels:    labelsForPodfalme(podflame),
 			Annotations: map[string]string{
-				"sidecar.istio.io/inject": "false",
+				"sidecar.istio.io/inject":     "false",
 				constants.AnnotationName:      podflame.Name,
 				constants.AnnotationNamespace: podflame.Namespace,
 			},
@@ -97,9 +97,6 @@ func (reconciler *PodFlameReconciler) definePod(podflame *profilepodiov1alpha1.P
 			},
 		},
 	}
-	// if err := ctrl.SetControllerReference(podflame, pod, reconciler.Scheme); err != nil {
-	// 	return nil, err
-	// }
 	return pod, nil
 }
 
@@ -108,7 +105,7 @@ func GetAgentImage() string {
 	if !found {
 		image = AgentImageDefault
 	}
-	return image;
+	return image
 }
 
 func (reconciler *PodFlameReconciler) reconcilePod(ctx context.Context, podflame *profilepodiov1alpha1.PodFlame) (ctrl.Result, error) {
@@ -157,12 +154,12 @@ func (reconciler *PodFlameReconciler) reconcilePod(ctx context.Context, podflame
 					log.Error(err, "Failed to update podflame status")
 					return ctrl.Result{}, err
 				}
-				log.Info(fmt.Sprintf("Profiler pod %s failed: %s",podName,logs))
+				log.Info(fmt.Sprintf("Profiler pod %s failed: %s", podName, logs))
 				reconciler.Recorder.Event(podflame, "Warning", "Failed",
-				fmt.Sprintf("Profiler failed: %s",
-					logs))
+					fmt.Sprintf("Profiler failed: %s",
+						logs))
 			case corev1.PodSucceeded:
-				log.Info(fmt.Sprintf("Profiler pod %s finished successfully",podName))
+				log.Info(fmt.Sprintf("Profiler pod %s finished successfully", podName))
 				logs, err := getPodLogs(reconciler.Clientset, namespace, pod.Name)
 				if err != nil {
 					log.Info("Failed to get logs from succeeded profile pod. Re-running reconcile.")
@@ -174,15 +171,15 @@ func (reconciler *PodFlameReconciler) reconcilePod(ctx context.Context, podflame
 					return ctrl.Result{}, err
 				}
 				reconciler.Recorder.Event(podflame, "Normal", "Success",
-				fmt.Sprintf("Profiler finished successfully"))
+					fmt.Sprintf("Profiler finished successfully"))
 			case corev1.PodRunning:
-				log.Info(fmt.Sprintf("Profiler pod %s is running",podName))
+				log.Info(fmt.Sprintf("Profiler pod %s is running", podName))
 				reconciler.Recorder.Event(podflame, "Normal", "Running",
-				fmt.Sprintf("Profiler is running"))
+					fmt.Sprintf("Profiler is running"))
 			default:
-				log.Info(fmt.Sprintf("Profiler %s initializing",podName))
+				log.Info(fmt.Sprintf("Profiler %s initializing", podName))
 				reconciler.Recorder.Event(podflame, "Normal", "Running",
-				fmt.Sprintf("Profiler %s initializing",podName))
+					fmt.Sprintf("Profiler %s initializing", podName))
 			}
 		}
 	}
