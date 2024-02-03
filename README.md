@@ -15,7 +15,7 @@ metadata:
   name: my-app-flame
   namespace: my-app-namespace
 spec:
-  targetPod: my-app-54674f9647-jvm98 # The name of pod you want to profile.
+  targetPod: my-app-54674f9647-jvm98 # The name of the pod you want to profile.
 EOF
 ```
 The following optional fields can be added to the PodFlame resource spec:

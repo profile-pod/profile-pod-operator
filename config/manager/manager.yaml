@@ -11,22 +11,6 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: system
 ---
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: profile-pod-operator-config
-  namespace: system
-  labels:
-    control-plane: controller-manager
-    app.kubernetes.io/name: configMap
-    app.kubernetes.io/instance: profile-pod-operator-config
-    app.kubernetes.io/component: manager
-    app.kubernetes.io/created-by: profile-pod-operator
-    app.kubernetes.io/part-of: profile-pod-operator
-    app.kubernetes.io/managed-by: kustomize
-data:
-  AGENT_IMAGE: "pp:v1-minideb"
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
