@@ -26,6 +26,7 @@ The following optional fields can be added to the PodFlame resource spec:
 ```
 > Note: the `PodFlame` resource is immutable, if changes are required to a `PodFlame` resource, destroying the current resource and rebuilding that resource with required changes.
 
+
 After PodFlame resource is created, an [agent pod](https://github.com/profile-pod/profile-pod-agent) will be created by the operator in the same node as the target pod who was specified in the PodFlame spec.
 The agent pod is a high privileged pod, which detect the target application programming language and the target application process id, and runs a profiler suitable for the requested application. Once the Profile is done and flamegraph is generated for the application, it is placed in the `.status.flameGraph` of the corresponding PodFlame resource. Run the following command to get it: 
 
@@ -33,7 +34,8 @@ The agent pod is a high privileged pod, which detect the target application prog
 kubectl get pf my-app-flame -n my-app-namespace -o jsonpath='{.status.flameGraph}' | base64 -d | gunzip > myapp-flamegraph.html
 ```
 
-> Note: the high privileged agent pod is created in the operator namespace, therefore there is no need to enforce the `privileged` policy in all profiled namespaces when using [Pod Security admission controller](https://kubernetes.io/docs/concepts/security/pod-security-admission/) (PSA). 
+
+> Note: the high privileged agent pod is created in the operator namespace, therefore, allow any unrestrictive policy in all profiled namespaces when using [Pod Security admission controller](https://kubernetes.io/docs/concepts/security/pod-security-admission/) (PSA) or similar enforcement tools should not be a concern. 
 ## Getting Started
 You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
 **Note:** Your controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
