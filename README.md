@@ -18,7 +18,7 @@ spec:
   targetPod: my-app-54674f9647-jvm98 # The name of the pod you want to profile.
 EOF
 ```
-The following optional fields can be added to the PodFlame resource spec:
+The following optional fields can be added to the `PodFlame` resource spec:
 
 ```yaml
     duration: 30s # The profiling duration in seconds (s/S) or minutins (m/M). default: 2m.
@@ -36,6 +36,7 @@ kubectl get pf my-app-flame -n my-app-namespace -o jsonpath='{.status.flameGraph
 
 
 > Note: the high privileged agent pod is created in the operator namespace, therefore, allow any unrestrictive policy in all profiled namespaces when using [Pod Security admission controller](https://kubernetes.io/docs/concepts/security/pod-security-admission/) (PSA) or similar enforcement tools should not be a concern. 
+
 ## Getting Started
 You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
 **Note:** Your controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
