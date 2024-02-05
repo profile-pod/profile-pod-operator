@@ -1,5 +1,5 @@
 # profile-pod-operator
-A Kubernetes operator for profiling applications running inside pods with low-overhead.
+A Kubernetes operator for profiling applications running inside pods in a simple way with low-overhead.
 
 ## Description
 The profile-pod-operator visualizing CPU time spent in the application functions using [FlameGraph](https://www.brendangregg.com/flamegraphs.html). The operator's goal is to help you pin down where your application spend too much time in a simple way with low-overhead and without any modification. By not require any modification or restart for existing applications and by using low-overhead profilers, this is great for recording flame graph data from an already running application in production environment that you don't want to interrupt. 
